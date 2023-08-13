@@ -4,11 +4,13 @@ const _ = require("lodash"); // Lodash makes JavaScript easier by taking the has
 const resolvers = {
     Query: {
         // User Resolvers
-        users: () => {
-            return UserList;
+        users: (parent, args, context, info) => {
+            if (UserList) return { users: UserList };
+
+            return { message: "There was an error!" }
         },
 
-        user: (parent, args) => {
+        user: (parent, args, context, info) => {
             const id = args.id;
             const user = _.find(UserList, { id: Number(id) });
             return user;
@@ -38,9 +40,9 @@ const resolvers = {
         updateUsername: (parent, args) => {
             const id = args.input.id;
             const newUsername = args.input.newUsername;
-            let userUpdated;
             /* use this single liner instead of above
             const {id, newUsername} = args.input; */
+            let userUpdated;
             UserList.forEach((user) => {
                 if (user.id === id) {
                     user.username = newUsername;
@@ -57,6 +59,20 @@ const resolvers = {
             return null;
         }
     },
+
+    UsersResult: {
+        __resolveType(obj) {
+            if (obj.users) {
+                return "UsersSuccessfulResult";
+            }
+
+            if (obj.message) {
+                return "UsersErrorResult";
+            }
+
+            return null;
+        }
+    }
 };
 
 module.exports = { resolvers };
